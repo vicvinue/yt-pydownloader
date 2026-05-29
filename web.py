@@ -92,6 +92,8 @@ from flask import Flask, request, jsonify, Response
 app        = Flask(__name__)
 FFMPEG_BIN = imageio_ffmpeg.get_ffmpeg_exe()
 EXTRA_OPTS = {"remote_components": "ejs:github"}
+MEDIA_DIR  = os.path.join(SCRIPT_DIR, "media")
+os.makedirs(MEDIA_DIR, exist_ok=True)
 _jobs: dict = {}
 
 class _SilentLogger:
@@ -540,7 +542,7 @@ HTML = """<!DOCTYPE html>
         <svg width="26" height="26" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
       </div>
       <div class="done-title">Descarga completada</div>
-      <div class="done-sub">El archivo se guardo en la carpeta del programa.</div>
+      <div class="done-sub">El archivo se guardo en la carpeta <strong>media/</strong>.</div>
       <button class="btn-ghost" onclick="reset()">Descargar otro</button>
     </div>
   </div>
@@ -851,7 +853,7 @@ def _run_download(url: str, choice: str, q: queue.Queue):
 
     base_opts = {
         **_SILENT, **EXTRA_OPTS,
-        "outtmpl":             os.path.join(SCRIPT_DIR, "%(title)s.%(ext)s"),
+        "outtmpl":             os.path.join(MEDIA_DIR, "%(title)s.%(ext)s"),
         "noplaylist":          True,
         "progress_hooks":      [progress_hook],
         "postprocessor_hooks": [postprocessor_hook],

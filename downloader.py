@@ -86,7 +86,9 @@ _bootstrap()
 import yt_dlp
 import imageio_ffmpeg
 
-FFMPEG_BIN = imageio_ffmpeg.get_ffmpeg_exe()
+FFMPEG_BIN  = imageio_ffmpeg.get_ffmpeg_exe()
+MEDIA_DIR   = os.path.join(SCRIPT_DIR, "media")
+os.makedirs(MEDIA_DIR, exist_ok=True)
 
 PHASE_LABELS = {1: "video", 2: "audio"}
 
@@ -223,7 +225,7 @@ def download(url, choice):
     base_opts = {
         **_SILENT,
         **EXTRA_OPTS,
-        "outtmpl": os.path.join(SCRIPT_DIR, "%(title)s.%(ext)s"),
+        "outtmpl": os.path.join(MEDIA_DIR, "%(title)s.%(ext)s"),
         "noplaylist": True,
         "progress_hooks": [make_progress_hook()],
         "postprocessor_hooks": [postprocessor_hook],
@@ -325,7 +327,7 @@ def main():
 
     choice_key, choice_label = options[sel - 1]
     print(f"\nDescargando: {choice_label}")
-    print(f"Destino    : {SCRIPT_DIR}\n")
+    print(f"Destino    : {MEDIA_DIR}\n")
 
     try:
         download(url, choice_key)
