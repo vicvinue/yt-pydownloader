@@ -660,7 +660,7 @@ def route_dl(job_id):
         headers={
             "Content-Type":        mime,
             "Content-Length":      str(size),
-            "Content-Disposition": f"attachment; filename=\"{filename}\"; filename*=UTF-8''{safe}",
+            "Content-Disposition": f"attachment; filename*=UTF-8''{safe}",
         },
     )
 
