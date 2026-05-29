@@ -29,27 +29,47 @@ Descargando Deno (runtime JS para YouTube)...
 
 Desde la segunda ejecución arranca directo.
 
-### macOS / Linux
+---
+
+### Interfaz web (recomendada)
+
+Abre una UI en el navegador en `http://localhost:7788`. Funciona igual en macOS, Linux y Windows.
+
+**macOS / Linux**
+
+```bash
+python3 web.py
+# o bien:
+./run-web.sh
+```
+
+**Windows**
+
+```bat
+python web.py
+rem o bien:
+run-web.bat
+```
+
+El navegador se abre automáticamente. Para cerrar el servidor presiona `Ctrl+C` en la terminal.
+
+---
+
+### Interfaz de línea de comandos
+
+**macOS / Linux**
 
 ```bash
 python3 downloader.py
-```
-
-O alternativamente:
-
-```bash
+# o bien:
 ./run.sh
 ```
 
-### Windows
+**Windows**
 
 ```bat
 python downloader.py
-```
-
-O alternativamente:
-
-```bat
+rem o bien:
 run.bat
 ```
 
