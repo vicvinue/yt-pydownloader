@@ -275,7 +275,7 @@ def download(url, choice):
 
 def main():
     print("=" * 52)
-    print("         YD-Downloader — YouTube Downloader")
+    print("               YT-Downloader")
     print("=" * 52)
 
     url = input("\nIngresa el enlace de YouTube: ").strip()
