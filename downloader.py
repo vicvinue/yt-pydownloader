@@ -35,12 +35,17 @@ def _ensure_deno():
     url      = f"https://github.com/denoland/deno/releases/latest/download/deno-{target}.zip"
     zip_path = os.path.join(VENV_DIR, "_deno_tmp.zip")
     print("Descargando Deno (runtime JS para YouTube)...", flush=True)
-    urllib.request.urlretrieve(url, zip_path)
-    with zipfile.ZipFile(zip_path, "r") as zf:
-        zf.extract("deno.exe" if _IS_WIN else "deno", VENV_BIN)
-    os.remove(zip_path)
-    if not _IS_WIN:
-        os.chmod(DENO_BIN, 0o755)
+    try:
+        urllib.request.urlretrieve(url, zip_path)
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            zf.extract("deno.exe" if _IS_WIN else "deno", VENV_BIN)
+        if not _IS_WIN:
+            os.chmod(DENO_BIN, 0o755)
+    except Exception as e:
+        print(f"Advertencia: no se pudo instalar Deno ({e}). Algunos videos pueden fallar.", flush=True)
+    finally:
+        if os.path.isfile(zip_path):
+            os.remove(zip_path)
 
 def _bootstrap():
     """Si no estamos dentro del venv del proyecto, créalo y relanza el script en él."""
@@ -207,8 +212,10 @@ def build_menu(available_heights, max_height):
     for h in extra:
         options.append((f"video_{h}", f"Video {h}p con audio"))
 
-    if max_height:
+    if max_height and max_height not in {720, 1080}:
         options.append(("video_original", f"Video calidad original ({max_height}p, mejor disponible) con audio"))
+    elif max_height:
+        options.append(("video_original", f"Video calidad original (AV1/{max_height}p, menor tamaño) con audio"))
 
     return options
 
