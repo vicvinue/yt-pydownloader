@@ -2,10 +2,45 @@
 import sys
 import os
 import subprocess
+import platform
 
+_IS_WIN    = platform.system() == "Windows"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 VENV_DIR   = os.path.join(SCRIPT_DIR, ".venv")
-VENV_PY    = os.path.join(VENV_DIR, "bin", "python3")
+VENV_BIN   = os.path.join(VENV_DIR, "Scripts" if _IS_WIN else "bin")
+VENV_PY    = os.path.join(VENV_BIN, "python.exe" if _IS_WIN else "python3")
+DENO_BIN   = os.path.join(VENV_BIN, "deno.exe" if _IS_WIN else "deno")
+
+def _ensure_deno():
+    """Descarga el binario de Deno al venv si no está disponible en el sistema."""
+    import shutil, urllib.request, zipfile
+
+    if shutil.which("deno") or os.path.isfile(DENO_BIN):
+        return
+
+    targets = {
+        ("Darwin",  "arm64"):   "aarch64-apple-darwin",
+        ("Darwin",  "x86_64"):  "x86_64-apple-darwin",
+        ("Linux",   "x86_64"):  "x86_64-unknown-linux-gnu",
+        ("Linux",   "aarch64"): "aarch64-unknown-linux-gnu",
+        ("Windows", "amd64"):   "x86_64-pc-windows-msvc",
+        ("Windows", "x86_64"):  "x86_64-pc-windows-msvc",
+    }
+    key    = (platform.system(), platform.machine().lower())
+    target = targets.get(key)
+    if not target:
+        print(f"Advertencia: plataforma {key} sin soporte para Deno.", flush=True)
+        return
+
+    url      = f"https://github.com/denoland/deno/releases/latest/download/deno-{target}.zip"
+    zip_path = os.path.join(VENV_DIR, "_deno_tmp.zip")
+    print("Descargando Deno (runtime JS para YouTube)...", flush=True)
+    urllib.request.urlretrieve(url, zip_path)
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        zf.extract("deno.exe" if _IS_WIN else "deno", VENV_BIN)
+    os.remove(zip_path)
+    if not _IS_WIN:
+        os.chmod(DENO_BIN, 0o755)
 
 def _bootstrap():
     """Si no estamos dentro del venv del proyecto, créalo y relanza el script en él."""
@@ -19,7 +54,7 @@ def _bootstrap():
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
 
-    # Instalar dependencias si faltan
+    # Instalar dependencias Python si faltan
     try:
         subprocess.check_call(
             [VENV_PY, "-c", "import yt_dlp; import imageio_ffmpeg"],
@@ -32,9 +67,14 @@ def _bootstrap():
              "yt-dlp", "imageio-ffmpeg"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
-        print("Listo.\n", flush=True)
 
-    os.execv(VENV_PY, [VENV_PY] + sys.argv)
+    # Instalar Deno si falta
+    _ensure_deno()
+
+    # Pasar PATH con venv/bin incluido para que yt-dlp encuentre deno
+    env = os.environ.copy()
+    env["PATH"] = VENV_BIN + os.pathsep + env.get("PATH", "")
+    os.execve(VENV_PY, [VENV_PY] + sys.argv, env)
 
 _bootstrap()
 
