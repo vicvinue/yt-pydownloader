@@ -507,7 +507,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
       a.click();
       document.body.removeChild(a);
       document.getElementById("done-sub").textContent =
-        "\"" + ev.filename + "\" se envió a tu navegador.";
+        `"${ev.filename}" se envió a tu navegador.`;
       showCards("done-card");
     }
 
