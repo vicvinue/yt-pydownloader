@@ -4,16 +4,30 @@ Descargador de YouTube con menú interactivo. Permite descargar audio (MP3/WAV) 
 
 ## Requisitos
 
-- Python 3.8 o superior
-- [ffmpeg](https://ffmpeg.org/) — **no es necesario instalarlo manualmente**, el script lo incluye automáticamente vía `imageio-ffmpeg`
+**Solo necesitas Python 3.8 o superior.** El resto se instala automáticamente la primera vez que ejecutas el script:
 
-> En Windows se necesita tener Python en el PATH. Descárgalo desde [python.org](https://www.python.org/downloads/) marcando la opción **"Add Python to PATH"** durante la instalación.
+| Herramienta | Instalación |
+|---|---|
+| Python 3.8+ | Manual (ver abajo) |
+| yt-dlp | Automática |
+| ffmpeg | Automática (binario estático incluido) |
+| Deno | Automática (descargado si no está en el sistema) |
 
-## Instalación
-
-No requiere instalación. Al ejecutar por primera vez crea un entorno virtual y descarga las dependencias automáticamente.
+> **Windows:** descarga Python desde [python.org](https://www.python.org/downloads/) marcando la opción **"Add Python to PATH"** durante la instalación.
 
 ## Uso
+
+### Primera ejecución
+
+Al ejecutar por primera vez, el script configura el entorno automáticamente:
+
+```
+Configurando entorno (primera vez)...
+Instalando dependencias (yt-dlp, ffmpeg)...
+Descargando Deno (runtime JS para YouTube)...
+```
+
+Desde la segunda ejecución arranca directo.
 
 ### macOS / Linux
 
@@ -30,29 +44,30 @@ O alternativamente:
 ### Windows
 
 ```bat
-run.bat
+python downloader.py
 ```
 
-O desde PowerShell / CMD:
+O alternativamente:
 
 ```bat
-python downloader.py
+run.bat
 ```
 
 ## Opciones de descarga
 
-| Opción | Formato | Codec | Contenedor |
-|--------|---------|-------|------------|
-| Audio MP3 | Solo audio | MP3 (máxima calidad) | .mp3 |
-| Audio WAV | Solo audio | WAV (sin pérdida) | .wav |
-| Video 720p | Video + audio | H.264 + AAC | .mp4 |
-| Video 1080p | Video + audio | H.264 + AAC | .mp4 |
-| Video original | Video + audio | AV1/VP9 + Opus | .mkv |
+| Opción | Codec video | Codec audio | Contenedor |
+|--------|-------------|-------------|------------|
+| Audio MP3 | — | MP3 (máxima calidad) | .mp3 |
+| Audio WAV | — | WAV (sin pérdida) | .wav |
+| Video 720p | H.264 | AAC | .mp4 |
+| Video 1080p | H.264 | AAC | .mp4 |
+| Video original | AV1 / VP9 | Opus | .mkv |
 
-Los archivos se guardan en la misma carpeta del script.
+- Las opciones 720p y 1080p usan H.264 para compatibilidad con QuickTime y reproductores nativos.
+- La opción "original" descarga el mejor stream disponible (generalmente AV1), más eficiente pero requiere VLC u otro reproductor moderno.
+- Video y audio se descargan por separado (así los sirve YouTube para resoluciones ≥ 480p) y se unen automáticamente con ffmpeg.
+- Los archivos se guardan en la misma carpeta del script.
 
-## Notas
+## Aviso legal
 
-- Las opciones 720p y 1080p usan H.264 para máxima compatibilidad con QuickTime y reproductores nativos.
-- La opción "original" descarga el mejor stream disponible en YouTube (generalmente AV1), más eficiente pero requiere VLC u otro reproductor moderno.
-- Video y audio se descargan por separado (así es como YouTube los sirve para resoluciones ≥ 480p) y se unen automáticamente con ffmpeg.
+Ver sección de [propiedad intelectual en el release v1.0.0](https://github.com/vicvinue/yt-pydownloader/releases/tag/v1.0.0).
