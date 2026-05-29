@@ -86,7 +86,7 @@ run.bat
 - Las opciones 720p y 1080p usan H.264 para compatibilidad con QuickTime y reproductores nativos.
 - La opción "original" descarga el mejor stream disponible (generalmente AV1), más eficiente pero requiere VLC u otro reproductor moderno.
 - Video y audio se descargan por separado (así los sirve YouTube para resoluciones ≥ 480p) y se unen automáticamente con ffmpeg.
-- Los archivos se guardan en la misma carpeta del script.
+- Los archivos se guardan en la carpeta `media/` dentro del proyecto (se crea automáticamente).
 
 ## Aviso legal
 
