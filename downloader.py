@@ -13,8 +13,11 @@ def _bootstrap():
         return  # ya estamos en el venv correcto
 
     if not os.path.isdir(VENV_DIR):
-        print("Configurando entorno (primera vez, solo tarda unos segundos)...")
-        subprocess.check_call([sys.executable, "-m", "venv", VENV_DIR])
+        print("Configurando entorno (primera vez)...", flush=True)
+        subprocess.check_call(
+            [sys.executable, "-m", "venv", VENV_DIR],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
 
     # Instalar dependencias si faltan
     try:
@@ -23,9 +26,13 @@ def _bootstrap():
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
     except subprocess.CalledProcessError:
-        print("Instalando dependencias...")
-        subprocess.check_call([VENV_PY, "-m", "pip", "install", "--quiet", "yt-dlp", "imageio-ffmpeg"])
-        print()
+        print("Instalando dependencias (yt-dlp, ffmpeg)...", flush=True)
+        subprocess.check_call(
+            [VENV_PY, "-m", "pip", "install", "--quiet", "--disable-pip-version-check",
+             "yt-dlp", "imageio-ffmpeg"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        print("Listo.\n", flush=True)
 
     os.execv(VENV_PY, [VENV_PY] + sys.argv)
 
