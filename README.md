@@ -77,6 +77,8 @@ run.bat
 
 Muestra un menú con colores agrupado en **Audio / Video**, con badges de calidad (HQ, SD, HD, FHD, 2K, 4K) y metadatos del video (duración, canal, vistas). Los colores se desactivan automáticamente si la salida no es una terminal o si defines `NO_COLOR`.
 
+Funciona en **bucle continuo**: tras cada descarga vuelve a pedir otro enlace; escribe `0` para salir. Los errores no cierran el programa, simplemente vuelve al prompt.
+
 ## Opciones de descarga
 
 ### Audio
