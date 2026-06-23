@@ -89,6 +89,8 @@ from flask import Flask, request, jsonify, Response
 
 # ── app setup ─────────────────────────────────────────────────────────────────
 
+VERSION    = "1.2.0"
+
 app        = Flask(__name__)
 FFMPEG_BIN = imageio_ffmpeg.get_ffmpeg_exe()
 EXTRA_OPTS = {"remote_components": "ejs:github"}
@@ -636,7 +638,7 @@ HTML = """<!DOCTYPE html>
 </div>
 
 <footer>
-  <span class="footer-copy">© 2026 vicvinue</span>
+  <span class="footer-copy">© 2026 vicvinue · v__VERSION__</span>
   <div class="footer-divider"></div>
   <a class="footer-link" href="https://github.com/vicvinue" target="_blank" rel="noopener">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
@@ -839,6 +841,8 @@ HTML = """<!DOCTYPE html>
 </script>
 </body>
 </html>"""
+
+HTML = HTML.replace("__VERSION__", VERSION)
 
 # ── routes ────────────────────────────────────────────────────────────────────
 
