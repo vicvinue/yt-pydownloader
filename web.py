@@ -115,6 +115,7 @@ HTML = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>YT-Downloader</title>
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -511,8 +512,8 @@ HTML = """<!DOCTYPE html>
 
 <header>
   <div class="logo">
-    <!-- YouTube play icon -->
-    <svg width="28" height="28" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+    <!-- App icon -->
+    <svg width="32" height="32" viewBox="0 0 626 626"><path d="M162.6,520.8l-.3-298-94.9,54.2c-6.2,3.5-11.3,7.2-15.7,12.6-11.3,16.3-6,38.6,11.5,48.1l83.9,48v34.7s-101.9-58.8-101.9-58.8c-17.9-11-28.8-29.1-29.4-50.2-.8-23.6,10.9-45.7,31.5-57.6l115.3-66.3.2-100.6c0-23.2,19-40.7,41.5-42.9,11.7-.6,22.4,2.8,32.5,8.9l67,40.4,93.4,55.5,74.3,43.7v-104.8c0-11.6-7-21-17.1-25.7-7.9-3.3-16.1-2.5-23.7,1.5l-70.3,39.9-29.4-17.3,83.4-46.9c22.1-14,49.3-11.4,68.8,6.2,8.9,9.6,16.4,21.8,16.4,35.9l.4,127.7,85.6,49.3c10.3,6,17.8,14.5,22.2,25.5,7.6,22.7-1.3,47.8-22.4,59.9l-85.8,49-171.5,97.7,80.2,45.5,18,9.6c12.2,5,25.7,3.7,35.5-5.5s9.3-11.3,9.3-18.8v-84.8c.1,0,29-16.4,29-16.4v101.9c0,25.5-15.6,46.7-39.4,55-16.8,5.8-34.2,4.4-50-4.2l-57-32.6-56.5-32.7-79.2,44.4c-10.8,6-22.4,5.4-33.5,1-10.8-6.4-21.7-17.6-21.7-32Z"/></svg>
   </div>
   <h1>YT-Downloader</h1>
   <p>Descarga videos y audio de YouTube</p>
@@ -788,6 +789,11 @@ HTML = """<!DOCTYPE html>
 @app.route("/")
 def index():
     return HTML, 200, {"Content-Type": "text/html; charset=utf-8"}
+
+@app.route("/icon.svg")
+def icon_svg():
+    with open(os.path.join(SCRIPT_DIR, "icon.svg"), "rb") as f:
+        return Response(f.read(), mimetype="image/svg+xml")
 
 @app.route("/info", methods=["POST"])
 def route_info():
