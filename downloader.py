@@ -336,67 +336,75 @@ def main():
     print(_c("96;1", "║") + _c("1", f"YT-Downloader  v{VERSION}".center(50)) + _c("96;1", "║"))
     print(_c("96;1", f"╚{bar}╝"))
 
-    url = input(_c("1", "\nIngresa el enlace de YouTube: ")).strip()
-    if not url:
-        print(_c("91", "URL vacía. Saliendo."))
-        sys.exit(1)
-
-    print(_c("90", "\nObteniendo información del video..."))
-    try:
-        info, available_heights, max_height = get_available_formats(url)
-    except Exception as e:
-        print(_c("91", f"Error al obtener el video: {e}"))
-        sys.exit(1)
-
-    title    = info.get("title", "Sin título")
-    duration = info.get("duration", 0)
-    mins, secs = divmod(duration, 60)
-    meta = "  ·  ".join(filter(None, [
-        f"⏱ {mins}:{secs:02d}",
-        info.get("uploader") or info.get("channel"),
-        _human_views(info.get("view_count")),
-    ]))
-    print("\n  " + _c("1", title))
-    print("  " + _c("90", meta))
-
-    options = build_menu(available_heights, max_height)
-
-    print("\n" + _c("1", "Opciones de descarga disponibles:"))
-    last_group = None
-    for i, (key, otitle, badge) in enumerate(options, 1):
-        group = "AUDIO" if key.startswith("audio") else "VIDEO"
-        if group != last_group:
-            icon = "♪" if group == "AUDIO" else "▶"
-            print("\n  " + _c("1;90", f"{icon}  {group}"))
-            last_group = group
-        pill = f"  {_pill(badge)}" if badge else ""
-        print(f"    {_c('90', str(i) + ')')} {_c('1', otitle.ljust(6))}{pill}")
-    print("\n    " + _c("90", "0)") + " Salir")
-
     while True:
-        try:
-            sel = int(input(_c("1", "\nElige una opción: ")))
-        except ValueError:
-            print(_c("91", "Ingresa un número válido."))
-            continue
-        if sel == 0:
-            print("Saliendo.")
-            sys.exit(0)
-        if 1 <= sel <= len(options):
+        url = input(
+            _c("1", "\nPega un enlace de YouTube ") + _c("90", "(0 = salir)") + _c("1", ": ")
+        ).strip()
+        if url == "0":
+            print(_c("90", "¡Hasta luego!"))
             break
-        print(_c("91", f"Opción inválida. Elige entre 0 y {len(options)}."))
+        if not url:
+            continue
 
-    choice_key, choice_title, choice_badge = options[sel - 1]
-    label = choice_title + (f" - {choice_badge}" if choice_badge else "")
-    print("\n" + _c("92;1", "▼ Descargando: ") + _c("1", label))
-    print(_c("90", f"  Destino: {MEDIA_DIR}") + "\n")
+        print(_c("90", "\nObteniendo información del video..."))
+        try:
+            info, available_heights, max_height = get_available_formats(url)
+        except Exception as e:
+            print(_c("91", f"Error al obtener el video: {e}"))
+            continue
 
-    try:
-        download(url, choice_key)
-        print("\n" + _c("92;1", "✓ Descarga completada."))
-    except Exception as e:
-        print("\n" + _c("91;1", f"✗ Error durante la descarga: {e}"))
-        sys.exit(1)
+        title    = info.get("title", "Sin título")
+        duration = info.get("duration", 0)
+        mins, secs = divmod(duration, 60)
+        meta = "  ·  ".join(filter(None, [
+            f"⏱ {mins}:{secs:02d}",
+            info.get("uploader") or info.get("channel"),
+            _human_views(info.get("view_count")),
+        ]))
+        print("\n  " + _c("1", title))
+        print("  " + _c("90", meta))
+
+        options = build_menu(available_heights, max_height)
+
+        print("\n" + _c("1", "Opciones de descarga disponibles:"))
+        last_group = None
+        for i, (key, otitle, badge) in enumerate(options, 1):
+            group = "AUDIO" if key.startswith("audio") else "VIDEO"
+            if group != last_group:
+                icon = "♪" if group == "AUDIO" else "▶"
+                print("\n  " + _c("1;90", f"{icon}  {group}"))
+                last_group = group
+            pill = f"  {_pill(badge)}" if badge else ""
+            print(f"    {_c('90', str(i) + ')')} {_c('1', otitle.ljust(6))}{pill}")
+        print("\n    " + _c("90", "0)") + " Salir")
+
+        sel = None
+        while True:
+            try:
+                sel = int(input(_c("1", "\nElige una opción: ")))
+            except ValueError:
+                print(_c("91", "Ingresa un número válido."))
+                continue
+            if 0 <= sel <= len(options):
+                break
+            print(_c("91", f"Opción inválida. Elige entre 0 y {len(options)}."))
+
+        if sel == 0:
+            print(_c("90", "¡Hasta luego!"))
+            break
+
+        choice_key, choice_title, choice_badge = options[sel - 1]
+        label = choice_title + (f" - {choice_badge}" if choice_badge else "")
+        print("\n" + _c("92;1", "▼ Descargando: ") + _c("1", label))
+        print(_c("90", f"  Destino: {MEDIA_DIR}") + "\n")
+
+        try:
+            download(url, choice_key)
+            print("\n" + _c("92;1", "✓ Descarga completada."))
+        except Exception as e:
+            print("\n" + _c("91;1", f"✗ Error durante la descarga: {e}"))
+
+        # Vuelve al inicio del bucle para pedir otro enlace.
 
 if __name__ == "__main__":
     main()
