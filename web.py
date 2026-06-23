@@ -230,6 +230,7 @@ HTML = """<!DOCTYPE html>
   .btn-ghost {
     background: #f3f4f6;
     color: #374151;
+    width: 100%;
     margin-top: 0.75rem;
   }
   .btn-ghost:hover { background: #e5e7eb; }
@@ -371,11 +372,14 @@ HTML = """<!DOCTYPE html>
 
   .badge {
     flex-shrink: 0;
-    padding: 0.3rem 0.7rem;
+    min-width: 3rem;
+    box-sizing: border-box;
+    padding: 0.3rem 0.6rem;
     border-radius: 9px;
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: .03em;
+    text-align: center;
     color: #fff;
   }
   .badge--gray   { background: #6b7280; }
@@ -547,7 +551,7 @@ HTML = """<!DOCTYPE html>
 <div class="container">
 
   <!-- URL input -->
-  <div class="card">
+  <div class="card" id="url-card">
     <div class="url-row">
       <input type="text" id="url-input"
              placeholder="https://www.youtube.com/watch?v=..."
@@ -599,6 +603,7 @@ HTML = """<!DOCTYPE html>
     <button class="btn-dl" id="dl-btn" onclick="startDownload()" disabled>
       Descargar
     </button>
+    <button class="btn-ghost" onclick="reset()">Pegar otra URL</button>
   </div>
 
   <!-- Progress -->
@@ -667,6 +672,8 @@ HTML = """<!DOCTYPE html>
     ["loading-card","info-card","prog-card","done-card"]
       .forEach(id => document.getElementById(id).classList.add("hidden"));
     ids.forEach(id => document.getElementById(id).classList.remove("hidden"));
+    // El input de URL solo se ve en el estado inicial (sin resultados).
+    document.getElementById("url-card").classList.toggle("hidden", ids.length > 0);
   }
 
   function setError(msg) {
