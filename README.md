@@ -1,5 +1,7 @@
 # yt-pydownloader
 
+**Español** | [English](README.en.md)
+
 Descargador de YouTube con menú interactivo. Permite descargar audio (MP3/WAV) y video (720p, 1080p, calidad original) con barra de progreso en tiempo real.
 
 ## Requisitos
