@@ -90,6 +90,32 @@ FFMPEG_BIN  = imageio_ffmpeg.get_ffmpeg_exe()
 MEDIA_DIR   = os.path.join(SCRIPT_DIR, "media")
 os.makedirs(MEDIA_DIR, exist_ok=True)
 
+VERSION = "1.2.1"
+
+# ── estilos de consola (ANSI; se desactivan si no hay TTY o si NO_COLOR) ─────────
+_USE_COLOR = sys.stdout.isatty() and os.environ.get("NO_COLOR") is None
+if _IS_WIN and _USE_COLOR:
+    os.system("")  # habilita las secuencias ANSI en Windows 10+
+
+def _c(code, text):
+    return f"\033[{code}m{text}\033[0m" if _USE_COLOR else text
+
+# Pills de color para los badges, igual que la interfaz web.
+_BADGE_BG = {
+    "HQ": "48;5;42",  "SD": "48;5;244", "HD": "48;5;33",
+    "FHD": "48;5;42", "2K": "48;5;63",  "4K": "48;5;141", "8K": "48;5;141",
+}
+
+def _pill(badge):
+    return _c(f"1;97;{_BADGE_BG.get(badge, '48;5;244')}", f" {badge} ")
+
+def _human_views(n):
+    if not n:              return ""
+    if n >= 1_000_000_000: return f"{n/1_000_000_000:.1f}B vistas"
+    if n >= 1_000_000:     return f"{n/1_000_000:.1f}M vistas"
+    if n >= 1_000:         return f"{n/1_000:.0f}K vistas"
+    return f"{n} vistas"
+
 PHASE_LABELS = {1: "video", 2: "audio"}
 
 def make_progress_hook():
@@ -211,14 +237,14 @@ def _badge(h):
 
 def build_menu(available_heights, max_height):
     options = [
-        ("audio_opus", "Opus - HQ"),
-        ("audio_m4a",  "M4A"),
-        ("audio_mp3",  "MP3"),
+        ("audio_opus", "Opus", "HQ"),
+        ("audio_m4a",  "M4A",  None),
+        ("audio_mp3",  "MP3",  None),
     ]
     tiers   = [480, 720, 1080, 1440, 2160, 4320]
     heights = [h for h in tiers if h in available_heights] or ([max_height] if max_height else [])
     for h in heights:
-        options.append((f"video_{h}", f"{h}p - {_badge(h)}"))
+        options.append((f"video_{h}", f"{h}p", _badge(h)))
     return options
 
 def download(url, choice):
@@ -304,62 +330,71 @@ def download(url, choice):
         os.close(saved_err)
 
 def main():
-    print("=" * 52)
-    print("               YT-Downloader")
-    print("=" * 52)
+    bar = "═" * 50
+    print(_c("96;1", f"╔{bar}╗"))
+    print(_c("96;1", "║") + _c("1", f"YT-Downloader  v{VERSION}".center(50)) + _c("96;1", "║"))
+    print(_c("96;1", f"╚{bar}╝"))
 
-    url = input("\nIngresa el enlace de YouTube: ").strip()
+    url = input(_c("1", "\nIngresa el enlace de YouTube: ")).strip()
     if not url:
-        print("URL vacía. Saliendo.")
+        print(_c("91", "URL vacía. Saliendo."))
         sys.exit(1)
 
-    print("\nObteniendo información del video...")
+    print(_c("90", "\nObteniendo información del video..."))
     try:
         info, available_heights, max_height = get_available_formats(url)
     except Exception as e:
-        print(f"Error al obtener el video: {e}")
+        print(_c("91", f"Error al obtener el video: {e}"))
         sys.exit(1)
 
-    title = info.get("title", "Sin título")
+    title    = info.get("title", "Sin título")
     duration = info.get("duration", 0)
     mins, secs = divmod(duration, 60)
-    print(f"\nTítulo  : {title}")
-    print(f"Duración: {mins}:{secs:02d}")
+    meta = "  ·  ".join(filter(None, [
+        f"⏱ {mins}:{secs:02d}",
+        info.get("uploader") or info.get("channel"),
+        _human_views(info.get("view_count")),
+    ]))
+    print("\n  " + _c("1", title))
+    print("  " + _c("90", meta))
 
     options = build_menu(available_heights, max_height)
 
-    print("\nOpciones de descarga disponibles:")
+    print("\n" + _c("1", "Opciones de descarga disponibles:"))
     last_group = None
-    for i, (key, label) in enumerate(options, 1):
+    for i, (key, otitle, badge) in enumerate(options, 1):
         group = "AUDIO" if key.startswith("audio") else "VIDEO"
         if group != last_group:
-            print(f"\n  {group}")
+            icon = "♪" if group == "AUDIO" else "▶"
+            print("\n  " + _c("1;90", f"{icon}  {group}"))
             last_group = group
-        print(f"  {i}) {label}")
-    print("\n  0) Salir")
+        pill = f"  {_pill(badge)}" if badge else ""
+        print(f"    {_c('90', str(i) + ')')} {_c('1', otitle.ljust(6))}{pill}")
+    print("\n    " + _c("90", "0)") + " Salir")
 
     while True:
         try:
-            sel = int(input("\nElige una opción: "))
+            sel = int(input(_c("1", "\nElige una opción: ")))
         except ValueError:
-            print("Ingresa un número válido.")
+            print(_c("91", "Ingresa un número válido."))
             continue
         if sel == 0:
             print("Saliendo.")
             sys.exit(0)
         if 1 <= sel <= len(options):
             break
-        print(f"Opción inválida. Elige entre 0 y {len(options)}.")
+        print(_c("91", f"Opción inválida. Elige entre 0 y {len(options)}."))
 
-    choice_key, choice_label = options[sel - 1]
-    print(f"\nDescargando: {choice_label}")
-    print(f"Destino    : {MEDIA_DIR}\n")
+    choice_key, choice_title, choice_badge = options[sel - 1]
+    label = choice_title + (f" - {choice_badge}" if choice_badge else "")
+    print("\n" + _c("92;1", "▼ Descargando: ") + _c("1", label))
+    print(_c("90", f"  Destino: {MEDIA_DIR}") + "\n")
 
     try:
         download(url, choice_key)
-        print(f"\nDescarga completada.")
+        print("\n" + _c("92;1", "✓ Descarga completada."))
     except Exception as e:
-        print(f"\nError durante la descarga: {e}")
+        print("\n" + _c("91;1", f"✗ Error durante la descarga: {e}"))
         sys.exit(1)
 
 if __name__ == "__main__":
