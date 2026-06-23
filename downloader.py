@@ -90,7 +90,8 @@ FFMPEG_BIN  = imageio_ffmpeg.get_ffmpeg_exe()
 MEDIA_DIR   = os.path.join(SCRIPT_DIR, "media")
 os.makedirs(MEDIA_DIR, exist_ok=True)
 
-VERSION = "1.2.2"
+sys.path.insert(0, SCRIPT_DIR)
+from version import VERSION
 
 # ── estilos de consola (ANSI; se desactivan si no hay TTY o si NO_COLOR) ─────────
 _USE_COLOR = sys.stdout.isatty() and os.environ.get("NO_COLOR") is None
