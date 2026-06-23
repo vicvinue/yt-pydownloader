@@ -634,9 +634,12 @@ HTML = """<!DOCTYPE html>
     else      { errorBox.classList.add("hidden"); }
   }
 
+  const YT_RE = /^https?:\/\/(www\.|m\.|music\.)?(youtube\.com\/(watch\?.*v=[\w-]+|shorts\/[\w-]+|live\/[\w-]+|embed\/[\w-]+|v\/[\w-]+|playlist\?.*list=[\w-]+)|youtu\.be\/[\w-]+)/i;
+
   async function fetchInfo() {
     const url = urlInput.value.trim();
     if (!url) { setError("Ingresa una URL de YouTube."); return; }
+    if (!YT_RE.test(url)) { setError("El enlace no parece ser de YouTube. Formatos válidos: youtube.com/watch, youtu.be, /shorts, /live, /playlist."); return; }
 
     setError(null);
     searchBtn.disabled = true;
