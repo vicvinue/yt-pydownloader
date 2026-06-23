@@ -203,8 +203,9 @@ def get_available_formats(url):
 
 def build_menu(available_heights, max_height):
     options = []
-    options.append(("audio_mp3", "Audio MP3 (máxima calidad)"))
-    options.append(("audio_wav", "Audio WAV (máxima calidad, sin pérdida)"))
+    options.append(("audio_opus", "Audio Opus (calidad original)"))
+    options.append(("audio_m4a",  "Audio M4A (máxima compatibilidad)"))
+    options.append(("audio_mp3",  "Audio MP3"))
 
     for res in [720, 1080]:
         if res in available_heights:
@@ -231,7 +232,29 @@ def download(url, choice):
         "postprocessor_hooks": [postprocessor_hook],
     }
 
-    if choice == "audio_mp3":
+    if choice == "audio_opus":
+        # Opus nativo de YouTube (mejor calidad por bit); si la fuente ya es Opus ffmpeg solo copia.
+        opts = {
+            **base_opts,
+            "format": "bestaudio[acodec=opus]/bestaudio/best",
+            "postprocessors": [{
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "opus",
+                "preferredquality": "0",
+            }],
+        }
+    elif choice == "audio_m4a":
+        # AAC nativo; si la fuente ya es AAC ffmpeg solo copia (sin pérdida).
+        opts = {
+            **base_opts,
+            "format": "bestaudio[ext=m4a]/bestaudio/best",
+            "postprocessors": [{
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "m4a",
+                "preferredquality": "0",
+            }],
+        }
+    elif choice == "audio_mp3":
         opts = {
             **base_opts,
             "format": "bestaudio/best",
@@ -241,33 +264,32 @@ def download(url, choice):
                 "preferredquality": "0",
             }],
         }
-    elif choice == "audio_wav":
-        opts = {
-            **base_opts,
-            "format": "bestaudio/best",
-            "postprocessors": [{
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "wav",
-            }],
-        }
     elif choice == "video_original":
         opts = {
             **base_opts,
-            "format": "bestvideo+bestaudio",
+            "format": "bestvideo+bestaudio/best",
             "merge_output_format": "mkv",
         }
     else:
-        height = choice.split("_")[1]
-        # Preferir H.264 (avc) para máxima compatibilidad con QuickTime/reproductores.
-        # Si no existe H.264 a esa resolución, usar el mejor disponible.
-        opts = {
-            **base_opts,
-            "format": (
-                f"bestvideo[height<={height}][vcodec^=avc]+bestaudio"
-                f"/bestvideo[height<={height}]+bestaudio"
-            ),
-            "merge_output_format": "mp4",
-        }
+        h = int(choice.split("_")[1])
+        if h <= 1080:
+            # H.264 + AAC en MP4 para máxima compatibilidad (QuickTime, iOS, Smart TVs).
+            opts = {
+                **base_opts,
+                "format": (
+                    f"bestvideo[height<={h}][vcodec^=avc]+bestaudio[ext=m4a]"
+                    f"/bestvideo[height<={h}][ext=mp4]+bestaudio[ext=m4a]"
+                    f"/bestvideo[height<={h}]+bestaudio/best[height<={h}]"
+                ),
+                "merge_output_format": "mp4",
+            }
+        else:
+            # >1080 solo existe en VP9/AV1 (sin H.264) → MKV, que admite Opus.
+            opts = {
+                **base_opts,
+                "format": f"bestvideo[height<={h}]+bestaudio/best[height<={h}]",
+                "merge_output_format": "mkv",
+            }
 
     # Silenciar stderr a nivel de fd para que nada rompa la barra de progreso
     null_fd    = os.open(os.devnull, os.O_WRONLY)

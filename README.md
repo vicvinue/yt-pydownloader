@@ -2,7 +2,7 @@
 
 **Español** | [English](README.en.md)
 
-Descargador de YouTube con menú interactivo. Permite descargar audio (MP3/WAV) y video (720p, 1080p, calidad original) con barra de progreso en tiempo real.
+Descargador de YouTube con menú interactivo. Permite descargar audio (Opus, M4A, MP3) y video (480p hasta 2160p/4K) con barra de progreso en tiempo real.
 
 ## Requisitos
 

@@ -2,7 +2,7 @@
 
 [Español](README.md) | **English**
 
-YouTube downloader with an interactive menu. Lets you download audio (MP3/WAV) and video (720p, 1080p, original quality) with a real-time progress bar.
+YouTube downloader with an interactive menu. Lets you download audio (Opus, M4A, MP3) and video (480p up to 2160p/4K) with a real-time progress bar.
 
 ## Requirements
 
