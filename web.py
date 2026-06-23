@@ -89,7 +89,7 @@ from flask import Flask, request, jsonify, Response
 
 # ── app setup ─────────────────────────────────────────────────────────────────
 
-VERSION    = "1.2.0"
+VERSION    = "1.2.1"
 
 app        = Flask(__name__)
 FFMPEG_BIN = imageio_ffmpeg.get_ffmpeg_exe()
