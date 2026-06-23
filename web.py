@@ -815,16 +815,16 @@ def route_info():
     max_height = max(available_heights) if available_heights else None
 
     options = [
-        {"key": "audio_mp3", "label": "Audio MP3"},
-        {"key": "audio_m4a", "label": "Audio M4A"},
-        {"key": "audio_wav", "label": "Audio WAV"},
+        {"key": "audio_opus", "label": "Opus (HQ)"},
+        {"key": "audio_m4a",  "label": "M4A (máxima compatibilidad)"},
+        {"key": "audio_mp3",  "label": "MP3"},
     ]
-    for res in [720, 1080]:
-        if res in available_heights:
-            options.append({"key": f"video_{res}", "label": f"{res}p"})
-    for h in sorted(h for h in available_heights if h > 1080):
+    video_heights = [res for res in (720, 1080) if res in available_heights]
+    video_heights += sorted(h for h in available_heights if h > 1080)
+    for h in video_heights:
         options.append({"key": f"video_{h}", "label": f"{h}p"})
-    if max_height:
+    # "Original" solo si la máxima calidad no quedó ya listada (p. ej. videos <720p).
+    if max_height and max_height not in video_heights:
         options.append({"key": "video_original", "label": f"Original ({max_height}p)"})
 
     duration = info.get("duration", 0)
@@ -933,9 +933,11 @@ def _run_download(url: str, choice: str, q: queue.Queue):
         opts = {**base_opts, "format": "bestaudio[ext=m4a]/bestaudio/best",
                 "postprocessors": [{"key": "FFmpegExtractAudio",
                                     "preferredcodec": "m4a", "preferredquality": "0"}]}
-    elif choice == "audio_wav":
-        opts = {**base_opts, "format": "bestaudio/best",
-                "postprocessors": [{"key": "FFmpegExtractAudio", "preferredcodec": "wav"}]}
+    elif choice == "audio_opus":
+        # Opus nativo de YouTube (mejor calidad por bit); si la fuente ya es Opus ffmpeg solo copia.
+        opts = {**base_opts, "format": "bestaudio[acodec=opus]/bestaudio/best",
+                "postprocessors": [{"key": "FFmpegExtractAudio",
+                                    "preferredcodec": "opus", "preferredquality": "0"}]}
     elif choice == "video_original":
         opts = {**base_opts, "format": "bestvideo+bestaudio/best", "merge_output_format": "mkv"}
     else:
