@@ -301,27 +301,35 @@ HTML = """<!DOCTYPE html>
 
   /* ── formats ── */
   .section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: .06em;
     color: #9ca3af;
-    margin-bottom: 0.625rem;
+    margin-bottom: 0.75rem;
   }
+  .section-label svg { width: 16px; height: 16px; fill: currentColor; }
+
+  .fmt-cols { display: flex; gap: 1.25rem; align-items: flex-start; }
+  .fmt-col  { flex: 1; min-width: 0; }
+  @media (max-width: 640px) { .fmt-cols { flex-direction: column; gap: 1rem; } }
 
   .format-list {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    gap: 0.5rem;
   }
 
   .format-opt {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
-    padding: 0.575rem 0.75rem;
+    gap: 0.75rem;
+    padding: 0.75rem 0.875rem;
     border: 1.5px solid #e5e7eb;
-    border-radius: 9px;
+    border-radius: 14px;
     cursor: pointer;
     transition: border-color .12s, background .12s;
     user-select: none;
@@ -332,8 +340,8 @@ HTML = """<!DOCTYPE html>
   .format-opt.sel { border-color: #3b82f6; background: #eff6ff; }
 
   .rdot {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     border: 2px solid #d1d5db;
     display: flex;
@@ -347,8 +355,8 @@ HTML = """<!DOCTYPE html>
 
   .rdot::after {
     content: "";
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: #3b82f6;
     opacity: 0;
@@ -357,7 +365,24 @@ HTML = """<!DOCTYPE html>
 
   .format-opt.sel .rdot::after { opacity: 1; }
 
-  .format-opt span { font-size: 0.875rem; }
+  .fmt-text  { flex: 1; min-width: 0; }
+  .fmt-title { font-size: 0.95rem; font-weight: 700; color: #111827; }
+  .fmt-sub   { font-size: 0.8rem; color: #9ca3af; margin-top: 1px; }
+
+  .badge {
+    flex-shrink: 0;
+    padding: 0.3rem 0.7rem;
+    border-radius: 9px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+    color: #fff;
+  }
+  .badge--gray   { background: #6b7280; }
+  .badge--blue   { background: #3b82f6; }
+  .badge--green  { background: #34d399; }
+  .badge--indigo { background: #6366f1; }
+  .badge--purple { background: #a855f7; }
 
   /* ── progress ── */
   .prog-title {
@@ -554,8 +579,22 @@ HTML = """<!DOCTYPE html>
 
     <hr class="divider">
 
-    <div class="section-label">Formato de descarga</div>
-    <div class="format-list" id="fmt-list"></div>
+    <div class="fmt-cols">
+      <div class="fmt-col">
+        <div class="section-label">
+          <svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
+          Audio
+        </div>
+        <div class="format-list" id="audio-list"></div>
+      </div>
+      <div class="fmt-col">
+        <div class="section-label">
+          <svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+          Video
+        </div>
+        <div class="format-list" id="video-list"></div>
+      </div>
+    </div>
 
     <button class="btn-dl" id="dl-btn" onclick="startDownload()" disabled>
       Descargar
@@ -660,17 +699,27 @@ HTML = """<!DOCTYPE html>
 
       document.getElementById("thumb").src   = data.thumbnail || "";
       document.getElementById("vtitle").textContent = data.title;
-      document.getElementById("vdur").textContent   = "⏱ " + data.duration;
+      const meta = ["⏱ " + data.duration, data.channel, data.views].filter(Boolean).join("  ·  ");
+      document.getElementById("vdur").textContent = meta;
 
-      const list = document.getElementById("fmt-list");
-      list.innerHTML = "";
-      data.options.forEach(opt => {
-        const el = document.createElement("div");
-        el.className = "format-opt";
-        el.innerHTML = `<div class="rdot"></div><span>${opt.label}</span>`;
-        el.addEventListener("click", () => selectFmt(el, opt.key));
-        list.appendChild(el);
-      });
+      const render = (containerId, items) => {
+        const list = document.getElementById(containerId);
+        list.innerHTML = "";
+        items.forEach(opt => {
+          const el = document.createElement("div");
+          el.className = "format-opt";
+          const badge = opt.badge
+            ? `<div class="badge badge--${opt.color}">${opt.badge}</div>` : "";
+          el.innerHTML =
+            `<div class="rdot"></div>` +
+            `<div class="fmt-text"><div class="fmt-title">${opt.title}</div>` +
+            `<div class="fmt-sub">${opt.subtitle}</div></div>` + badge;
+          el.addEventListener("click", () => selectFmt(el, opt.key));
+          list.appendChild(el);
+        });
+      };
+      render("audio-list", data.audio || []);
+      render("video-list", data.video || []);
 
       document.getElementById("dl-btn").disabled = true;
       showCards("info-card");
@@ -807,34 +856,80 @@ def route_info():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-    available_heights = set()
-    for f in info.get("formats", []):
-        h = f.get("height")
-        if h and f.get("vcodec") != "none":
-            available_heights.add(h)
-    max_height = max(available_heights) if available_heights else None
+    formats  = info.get("formats", [])
+    duration = info.get("duration") or 0
 
-    options = [
-        {"key": "audio_opus", "label": "Opus (HQ)"},
-        {"key": "audio_m4a",  "label": "M4A (máxima compatibilidad)"},
-        {"key": "audio_mp3",  "label": "MP3"},
+    def _size(f):
+        s = f.get("filesize") or f.get("filesize_approx")
+        if s:
+            return s
+        tbr = f.get("tbr")
+        return int(tbr * 1000 / 8 * duration) if (tbr and duration) else 0
+
+    def _human_mb(num_bytes):
+        return f"{num_bytes / 1_000_000:.1f} MB" if num_bytes else "—"
+
+    # Mejor audio por tipo, para estimar el tamaño combinado de cada video.
+    audio_only = [f for f in formats if f.get("vcodec") == "none" and f.get("acodec") != "none"]
+    def _best_audio(pred):
+        cands = [f for f in audio_only if pred(f)]
+        return max(cands, key=lambda f: f.get("abr") or f.get("tbr") or 0) if cands else None
+    m4a_sz  = _size(_best_audio(lambda f: f.get("ext") == "m4a") or {})
+    opus_sz = _size(_best_audio(lambda f: f.get("acodec") == "opus") or {})
+
+    heights    = sorted({f["height"] for f in formats
+                         if f.get("height") and f.get("vcodec") != "none"})
+    max_height = heights[-1] if heights else None
+
+    def _video_size(h):
+        cands = [f for f in formats if f.get("height") == h
+                 and f.get("vcodec") != "none" and f.get("acodec") == "none"]
+        if not cands:
+            return 0
+        avc  = [f for f in cands if (f.get("vcodec") or "").startswith("avc")]
+        pool = avc if (h <= 1080 and avc) else cands
+        return _size(max(pool, key=lambda f: f.get("tbr") or 0))
+
+    def _badge(h):
+        if h <= 480:  return ("SD",  "gray")
+        if h <= 720:  return ("HD",  "blue")
+        if h <= 1080: return ("FHD", "green")
+        if h <= 1440: return ("2K",  "indigo")
+        if h <= 2160: return ("4K",  "purple")
+        return ("8K", "purple")
+
+    def _human_views(n):
+        if not n:                  return ""
+        if n >= 1_000_000_000:     return f"{n/1_000_000_000:.1f}B vistas"
+        if n >= 1_000_000:         return f"{n/1_000_000:.1f}M vistas"
+        if n >= 1_000:             return f"{n/1_000:.0f}K vistas"
+        return f"{n} vistas"
+
+    audio = [
+        {"key": "audio_opus", "title": "Opus", "subtitle": "Calidad original",    "badge": "HQ", "color": "green"},
+        {"key": "audio_m4a",  "title": "M4A",  "subtitle": "Compatible con todo",  "badge": None, "color": None},
+        {"key": "audio_mp3",  "title": "MP3",  "subtitle": "Para equipos antiguos","badge": None, "color": None},
     ]
-    video_heights = [res for res in (720, 1080) if res in available_heights]
-    video_heights += sorted(h for h in available_heights if h > 1080)
-    for h in video_heights:
-        options.append({"key": f"video_{h}", "label": f"{h}p"})
-    # "Original" solo si la máxima calidad no quedó ya listada (p. ej. videos <720p).
-    if max_height and max_height not in video_heights:
-        options.append({"key": "video_original", "label": f"Original ({max_height}p)"})
 
-    duration = info.get("duration", 0)
-    mins, secs = divmod(duration, 60)
+    TIERS        = [480, 720, 1080, 1440, 2160, 4320]
+    tier_heights = [h for h in TIERS if h in heights] or ([max_height] if max_height else [])
+    video = []
+    for h in tier_heights:
+        badge, color = _badge(h)
+        combined = _video_size(h) + (m4a_sz if h <= 1080 else (opus_sz or m4a_sz))
+        video.append({"key": f"video_{h}", "title": f"{h}p",
+                       "subtitle": _human_mb(combined), "badge": badge, "color": color})
+
+    mins, secs = divmod(int(duration), 60)
 
     return jsonify({
         "title":     info.get("title", "Sin título"),
         "duration":  f"{mins}:{secs:02d}",
+        "channel":   info.get("uploader") or info.get("channel") or "",
+        "views":     _human_views(info.get("view_count")),
         "thumbnail": info.get("thumbnail"),
-        "options":   options,
+        "audio":     audio,
+        "video":     video,
     })
 
 @app.route("/download", methods=["POST"])
