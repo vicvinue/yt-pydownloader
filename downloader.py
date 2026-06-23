@@ -201,25 +201,24 @@ def get_available_formats(url):
     max_height = max(available_heights) if available_heights else None
     return info, available_heights, max_height
 
+def _badge(h):
+    if h <= 480:  return "SD"
+    if h <= 720:  return "HD"
+    if h <= 1080: return "FHD"
+    if h <= 1440: return "2K"
+    if h <= 2160: return "4K"
+    return "8K"
+
 def build_menu(available_heights, max_height):
-    options = []
-    options.append(("audio_opus", "Audio Opus (calidad original)"))
-    options.append(("audio_m4a",  "Audio M4A (máxima compatibilidad)"))
-    options.append(("audio_mp3",  "Audio MP3"))
-
-    for res in [720, 1080]:
-        if res in available_heights:
-            options.append((f"video_{res}", f"Video {res}p con audio"))
-
-    extra = sorted(h for h in available_heights if h > 1080)
-    for h in extra:
-        options.append((f"video_{h}", f"Video {h}p con audio"))
-
-    if max_height and max_height not in {720, 1080}:
-        options.append(("video_original", f"Video calidad original ({max_height}p, mejor disponible) con audio"))
-    elif max_height:
-        options.append(("video_original", f"Video calidad original (AV1/{max_height}p, menor tamaño) con audio"))
-
+    options = [
+        ("audio_opus", "Opus - HQ"),
+        ("audio_m4a",  "M4A"),
+        ("audio_mp3",  "MP3"),
+    ]
+    tiers   = [480, 720, 1080, 1440, 2160, 4320]
+    heights = [h for h in tiers if h in available_heights] or ([max_height] if max_height else [])
+    for h in heights:
+        options.append((f"video_{h}", f"{h}p - {_badge(h)}"))
     return options
 
 def download(url, choice):
@@ -330,9 +329,14 @@ def main():
     options = build_menu(available_heights, max_height)
 
     print("\nOpciones de descarga disponibles:")
-    for i, (_, label) in enumerate(options, 1):
+    last_group = None
+    for i, (key, label) in enumerate(options, 1):
+        group = "AUDIO" if key.startswith("audio") else "VIDEO"
+        if group != last_group:
+            print(f"\n  {group}")
+            last_group = group
         print(f"  {i}) {label}")
-    print("  0) Salir")
+    print("\n  0) Salir")
 
     while True:
         try:
