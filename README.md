@@ -77,17 +77,29 @@ run.bat
 
 ## Opciones de descarga
 
-| Opción | Codec video | Codec audio | Contenedor |
-|--------|-------------|-------------|------------|
-| Audio MP3 | — | MP3 (máxima calidad) | .mp3 |
-| Audio WAV | — | WAV (sin pérdida) | .wav |
-| Video 720p | H.264 | AAC | .mp4 |
-| Video 1080p | H.264 | AAC | .mp4 |
-| Video original | AV1 / VP9 | Opus | .mkv |
+### Audio
 
-- Las opciones 720p y 1080p usan H.264 para compatibilidad con QuickTime y reproductores nativos.
-- La opción "original" descarga el mejor stream disponible (generalmente AV1), más eficiente pero requiere VLC u otro reproductor moderno.
-- Video y audio se descargan por separado (así los sirve YouTube para resoluciones ≥ 480p) y se unen automáticamente con ffmpeg.
+| Formato | Códec | Contenedor |
+|---------|-------|------------|
+| **Opus** | Opus (copia nativa de YouTube) | `.opus` |
+| **M4A** | AAC | `.m4a` |
+| **MP3** | MP3 (VBR ~q0) | `.mp3` |
+
+- **Opus** es la mejor calidad por bit; si la fuente ya es Opus se extrae sin recodificar.
+- **M4A** (AAC) es la opción de máxima compatibilidad.
+- **MP3** se recodifica, pensada para equipos antiguos.
+
+### Video
+
+| Resolución | Códec | Contenedor |
+|-----------|-------|------------|
+| ≤ 1080p (480p · 720p · 1080p) | H.264 + AAC | `.mp4` |
+| > 1080p (1440p · 2160p) | VP9 o AV1 + audio | `.mkv` |
+
+- Las resoluciones hasta 1080p usan **H.264 + AAC en MP4** para compatibilidad con QuickTime, iOS y Smart TVs.
+- Las resoluciones superiores solo existen en VP9/AV1, así que se entregan en **MKV** (requiere un reproductor moderno como VLC).
+- Cada opción de video muestra el **tamaño estimado** antes de descargar.
+- Video y audio se descargan por separado (así los sirve YouTube en ≥ 480p) y se unen automáticamente con ffmpeg.
 - Los archivos se guardan en la carpeta `media/` dentro del proyecto (se crea automáticamente).
 
 ## Aviso legal
