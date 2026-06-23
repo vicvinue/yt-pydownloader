@@ -75,6 +75,8 @@ rem or:
 run.bat
 ```
 
+Shows a colorized menu grouped into **Audio / Video**, with quality badges (HQ, SD, HD, FHD, 2K, 4K) and video metadata (duration, channel, views). Colors are disabled automatically when the output isn't a terminal or when `NO_COLOR` is set.
+
 ## Download options
 
 ### Audio
